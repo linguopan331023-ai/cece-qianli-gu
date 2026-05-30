@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>你是什么潜力股？</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", "Helvetica Neue", sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #1a1a3e, #24243e);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* ===== 卡片容器 ===== */
+.card {
+  width: 400px;
+  min-height: 700px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 28px;
+  padding: 32px 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===== 页面切换 ===== */
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+/* ===== 首页 ===== */
+.home {
+  text-align: center;
+  padding-top: 40px;
+}
+.home-icon { font-size: 64px; margin-bottom: 16px; }
+.home h1 {
+  color: white;
+  font-size: 28px;
+  font-weight: 900;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+.home h1 span { color: #FFD700; }
+.home p {
+  color: rgba(255,255,255,0.5);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.home .start-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #FFD700, #FF6A00);
+  color: #1a1a2e;
+  padding: 16px 48px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 20px rgba(255,215,0,0.2);
+  transition: transform 0.2s;
+}
+.home .start-btn:active { transform: scale(0.95); }
+.home .tagline {
+  margin-top: 20px;
+  color: rgba(255,255,255,0.2);
+  font-size: 11px;
+}
+
+/* ===== 问题页 ===== */
+.question {
+  padding-top: 20px;
+}
+.progress {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 30px;
+}
+.progress-dot {
+  flex: 1;
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+}
+.progress-dot.active { background: linear-gradient(90deg, #FFD700, #FF6A00); }
+.progress-dot.filled { background: #FFD700; }
+
+.q-num {
+  color: rgba(255,255,255,0.3);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.q-text {
+  color: white;
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+.q-options { display: flex; flex-direction: column; gap: 10px; }
+.q-opt {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 16px 18px;
+  color: rgba(255,255,255,0.7);
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.q-opt:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,215,0,0.2); }
+.q-opt:active { transform: scale(0.98); background: rgba(255,215,0,0.08); border-color: #FFD700; color: white; }
+
+/* ===== 结果页 ===== */
+.result {
+  text-align: center;
+  animation: popIn 0.5s ease;
+}
+@keyframes popIn {
+  0% { opacity:0; transform:scale(0.8); }
+  100% { opacity:1; transform:scale(1); }
+}
+.result-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #FF6A00, #EE2D00);
+  color: white;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+.result .stock-icon {
+  font-size: 56px;
+  margin-bottom: 10px;
+}
+.result .stock-ticker {
+  color: #FFD700;
+  font-size: 32px;
+  font-weight: 900;
+}
+.result .stock-name {
+  color: rgba(255,255,255,0.4);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* 运势条 */
+.fortune {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+}
+.fortune-icon { font-size: 28px; flex-shrink: 0; }
+.fortune-text { flex: 1; }
+.fortune-label { color: rgba(255,255,255,0.3); font-size: 10px; font-weight: 700; letter-spacing: 2px; margin-bottom: 3px; }
+.fortune-value { color: white; font-size: 15px; font-weight: 700; }
+.fortune-detail { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 2px; }
+
+/* 性格卡 */
+.personality {
+  background: rgba(255,215,0,0.04);
+  border: 1px solid rgba(255,215,0,0.1);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+.personality-label { color: #FFD700; font-size: 10px; font-weight: 700; letter-spacing: 2px; margin-bottom: 6px; }
+.personality-title { color: white; font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+.personality-desc { color: rgba(255,255,255,0.6); font-size: 13px; line-height: 1.7; }
+
+/* 心理学分析 */
+.psych {
+  background: rgba(0,161,233,0.04);
+  border: 1px solid rgba(0,161,233,0.08);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+.psych-label { color: #00A1E9; font-size: 10px; font-weight: 700; letter-spacing: 2px; margin-bottom: 6px; }
+.psych-text { color: rgba(255,255,255,0.6); font-size: 12px; line-height: 1.7; }
+
+.share-cta {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.share-cta .qr {
+  width: 100px; height: 100px;
+  background: white;
+  border-radius: 10px;
+  margin: 8px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px; color: #999;
+}
+.share-cta .hint { color: rgba(255,255,255,0.3); font-size: 11px; }
+
+.share-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #00A1E9, #0070C0);
+  color: white;
+  padding: 12px 32px;
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  margin-top: 8px;
+}
+.share-btn:active { transform: scale(0.95); }
+.restart-btn {
+  display: inline-block;
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.4);
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.06);
+  width: 100%;
+  margin-top: 8px;
+}
+.restart-btn:active { background: rgba(255,255,255,0.08); }
+.footer-note {
+  color: rgba(255,255,255,0.1);
+  font-size: 8px;
+  text-align: center;
+  margin-top: 12px;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- ===== 首页 ===== -->
+  <div class="page active" id="page-home">
+    <div class="home">
+      <div class="home-icon">📈</div>
+      <h1>测测你是<br><span>什么潜力股？</span></h1>
+      <p>4道题，找到你的投资人格<br>测测你的股性是哪种</p>
+      <button class="start-btn" onclick="startQuiz()">开始测试 →</button>
+      <div class="tagline">已有 1,247 人完成测试</div>
+    </div>
+  </div>
+
+  <!-- ===== 问题页 ===== -->
+  <div class="page" id="page-question">
+    <div class="question">
+      <div class="progress" id="progress"></div>
+      <div class="q-num" id="q-num"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="q-options" id="q-options"></div>
+    </div>
+  </div>
+
+  <!-- ===== 结果页 ===== -->
+  <div class="page" id="page-result">
+    <div class="result">
+      <div class="result-badge">🎯 你的潜力股人格</div>
+      <div class="stock-icon" id="r-icon">🚀</div>
+      <div class="stock-ticker" id="r-ticker">$NVDA</div>
+      <div class="stock-name" id="r-name">NVIDIA</div>
+
+      <div class="fortune">
+        <div class="fortune-icon">🔮</div>
+        <div class="fortune-text">
+          <div class="fortune-label">今日运势</div>
+          <div class="fortune-value" id="r-fortune">大吉 · 逢低加仓</div>
+          <div class="fortune-detail" id="r-fortune-detail">最佳操作：持仓不动，让利润奔跑</div>
+        </div>
+      </div>
+
+      <div class="personality">
+        <div class="personality-label">🧬 性格画像</div>
+        <div class="personality-title" id="r-personality-title">赛道狂人型</div>
+        <div class="personality-desc" id="r-personality-desc">你天生喜欢冲在最前面，别人还在犹豫的时候你已经进场了。高风险对你来说就是高回报的门票。</div>
+      </div>
+
+      <div class="psych">
+        <div class="psych-label">🧠 心理学解读</div>
+        <div class="psych-text" id="r-psych">你的决策风格偏向直觉驱动型（Intuitive-risking），在做投资决策时更多地依赖模式识别而非数据分析。这种类型的人在上升市场中表现极好，但在下行周期中容易过度自信。</div>
+      </div>
+
+      <div class="share-cta">
+        <div style="color:rgba(255,255,255,0.6);font-size:13px;font-weight:700;">📲 关注公众号，每天看AI分析</div>
+        <div class="qr" id="gzh-qr">
+          <div style="width:100px;height:100px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#999;font-size:9px;line-height:1.4;text-align:center;">请替换为<br>你的公众号<br>二维码</div>
+        </div>
+        <div class="hint">每天推送AI投资分析、板块轮动、财报提醒</div>
+      </div>
+
+      <button class="share-btn" onclick="shareResult()">📤 截图分享 · 看看朋友是什么股</button>
+      <button class="restart-btn" onclick="restartQuiz()">🔄 再测一次</button>
+      <div class="footer-note">⚠️ 娱乐测试 · 不构成投资建议 · 关注公众号获取更多AI分析</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== 题库 =====
+const questions = [
+  {
+    q: "朋友约你一起投资一个项目，你怎么做？",
+    options: [
+      { text: "先看两天数据再决定", scores: { nvda:1, aapl:3, msft:3, googl:2, cost:3, jpm:3 } },
+      { text: "问了3个懂行的朋友才下决定", scores: { nvda:1, aapl:2, msft:2, googl:1, cost:2, jpm:2 } },
+      { text: "听完介绍就投了，先上车再说", scores: { nvda:3, tsla:3, iren:3, oklo:3, amzn:2 } },
+      { text: "看一眼就pass，除非看到实打实的收入", scores: { aapl:2, cost:3, jpm:3, googl:1, msft:1 } },
+    ]
+  },
+  {
+    q: "你更认同哪种赚钱方式？",
+    options: [
+      { text: "稳稳地每年涨15%，不用操心", scores: { aapl:3, cost:3, msft:3, jpm:2, googl:2 } },
+      { text: "三年翻10倍，但中间跌50%也不慌", scores: { nvda:3, tsla:3, iren:3, oklo:3 } },
+      { text: "赚信息差的钱，别人不知道我知道", scores: { googl:3, amzn:2, jpm:2 } },
+      { text: "什么都来一点，分散风险", scores: { cost:2, msft:2, aapl:1, googl:1 } },
+    ]
+  },
+  {
+    q: "周末你在干嘛？",
+    options: [
+      { text: "研究研报和财报，卷王就是我", scores: { nvda:3, googl:3, amzn:2, tsla:2 } },
+      { text: "陪家人/运动，周一再说", scores: { cost:3, aapl:3, msft:2 } },
+      { text: "刷X看博主说了什么新方向", scores: { iren:3, oklo:3, tsla:2, nvda:1 } },
+      { text: "看剧打游戏，不看盘的日子真舒服", scores: { aapl:2, cost:2, jpm:1 } },
+    ]
+  },
+  {
+    q: "你觉得自己更像哪种动物？",
+    options: [
+      { text: "🦅 鹰——看得远，一击必中", scores: { nvda:3, googl:3, amzn:2 } },
+      { text: "🐢 龟——慢但稳，活得久", scores: { cost:3, aapl:3, msft:3, jpm:2 } },
+      { text: "🐺 狼——团队作战，敏锐", scores: { tsla:2, iren:2, oklo:2, amzn:2 } },
+      { text: "🐱 猫——好奇心重，什么都想碰", scores: { tsla:3, iren:3, oklo:3 } },
+    ]
+  },
+];
+
+// ===== 股票池 =====
+const stocks = [
+  {
+    id: "nvda",
+    ticker: "NVDA",
+    name: "NVIDIA",
+    icon: "🚀",
+    personality: "赛道狂人型",
+    desc: "你天生喜欢冲在最前面。别人还在研究的时候你已经进场了，别人开始追的时候你已经翻倍了。你就是那种会在所有人质疑AI时all in的人。",
+    fortune: ["大吉 · 逢低加仓", "吉 · 耐心持有", "中吉 · 短期有波动"],
+    fortuneDetail: ["最佳操作：持仓不动，让利润奔跑", "关注点：下季财报前不要乱动", "提醒：涨多了减一点，别贪"],
+    psych: "你的决策风格偏向直觉驱动型（Intuitive-risking），依赖模式识别而非数据分析。这种类型在上升市场中表现极好——你总能在拐点前入场。但下行周期中容易过度自信。建议给每个仓位设个止损线，哪怕你坚信它会涨100倍。",
+  },
+  {
+    id: "aapl",
+    ticker: "AAPL",
+    name: "Apple",
+    icon: "🍎",
+    personality: "稳健王者型",
+    desc: "你不追求一夜暴富，你追求的是每年稳稳地赚钱。别人在追热点的时候你在研究基本面，别人恐慌割肉的时候你在慢慢加仓。你可能不是涨最快的，但你一定是活得最久的。",
+    fortune: ["大吉 · 稳如泰山", "吉 · 继续持有", "小吉 · 可以加点"],
+    fortuneDetail: ["最佳操作：继续定投，别管短期波动", "关注点：iPhone周期+服务收入", "提醒：跌5%就是加仓机会"],
+    psych: "你属于稳健决策型（Conservative-consistent），偏好低波动和确定性。你的投资决策受到损失厌恶（Loss Aversion）的强烈影响——你宁可少赚也不想亏。这让你在熊市中表现优异，但在牛市中容易跑输大盘。建议配置10-20%的进攻型仓位来平衡。",
+  },
+  {
+    id: "tsla",
+    ticker: "TSLA",
+    name: "Tesla",
+    icon: "⚡",
+    personality: "赌徒心跳型",
+    desc: "你的人生信条是：要么不上，要上就上最大的。一天的波动比别人一年的涨幅还大，但你睡得着觉。你不是在投资，你是在享受这种刺激。每一次暴涨你都觉得'我就知道'，每一次暴跌你都说'还会回来的'。",
+    fortune: ["大吉 · 又要起飞", "凶 · 短期谨慎", "中吉 · 波动中找机会"],
+    fortuneDetail: ["最佳操作：跌10%加仓，涨20%减仓", "关注点：马斯克又发推了没？", "提醒：设好止损，别All in"],
+    psych: "你属于高风险偏好型（High-sensation seeking），多巴胺驱动的交易者。研究表明，波动率越高的资产对你的吸引力越大——因为不确定性能激发更强的情绪反应。这是一把双刃剑：牛市你是王者，熊市你可能一夜归零。纪律是你唯一的救星。",
+  },
+  {
+    id: "msft",
+    ticker: "MSFT",
+    name: "Microsoft",
+    icon: "💻",
+    personality: "隐形富豪型",
+    desc: "你不声不响，但你的资产在稳步增长。你不发朋友圈晒收益，不跟人争论股票，默默地看着账户数字变大。别人问你怎么赚钱的，你只说'买了点微软'。低调，但真有钱。",
+    fortune: ["大吉 · 默默发财", "吉 · 一切正常", "中吉 · 等人来接盘"],
+    fortuneDetail: ["最佳操作：不动就是最好的操作", "关注点：云业务增长+AI落地", "提醒：别人恐慌的时候你可以贪婪"],
+    psych: "你属于低维护型投资者（Low-maintenance investor）。你不追求超额收益，满足于市场平均回报——而实际上长期持有优质资产的表现往往跑赢频繁交易者。你的优势是时间，不是择时。巴菲特说过：'最好的投资是买入并持有。'",
+  },
+  {
+    id: "amzn",
+    ticker: "AMZN",
+    name: "Amazon",
+    icon: "📦",
+    personality: "野心家型",
+    desc: "你什么都想干，而且什么都想干成最大的。主业赚钱，副业更赚钱，副业的副业还赚钱。别人觉得你太贪心了，但你知道——野心家的宿命就是不断扩张。",
+    fortune: ["大吉 · 多点开花", "吉 · 主业稳副业旺", "中吉 · 注意别太分散"],
+    fortuneDetail: ["最佳操作：聚焦核心赛道", "关注点：AWS AI + 零售利润", "提醒：扩张可以，但要留够现金"],
+    psych: "你属于扩张型投资者（Aggressive-expansionist），偏好多重收入来源和跨领域布局。这种策略在王兴的'无边界扩张'理论中表现优秀，但需要极强的现金管理能力。你的最大风险不是选错标的，而是战线拉太长导致注意力分散。",
+  },
+  {
+    id: "googl",
+    ticker: "GOOGL",
+    name: "Alphabet",
+    icon: "🔍",
+    personality: "学霸型",
+    desc: "你做什么都要先研究透彻。买一只股票前看20份研报、拉3年数据、对比5个同行。你知道的东西比大多数人都多，但有时候也会因为太理性而错过了最好的上车时机。",
+    fortune: ["大吉 · 厚积薄发", "吉 · 研究对了方向", "小吉 · 可以相信直觉一次"],
+    fortuneDetail: ["最佳操作：信你的研究，别信市场情绪", "关注点：AI搜索+云+Waymo", "提醒：有时候要相信直觉，别过度分析"],
+    psych: "你属于分析型投资者（Analytical-rational），数据驱动决策。你的优势是系统性思维和风险控制，但容易陷入分析瘫痪（Analysis Paralysis）。研究表明，过度分析的投资者的收益并不比'差不多就行'的人高——有时候'足够好'比'完美'更好。",
+  },
+  {
+    id: "iren",
+    ticker: "IREN",
+    name: "Iris Energy",
+    icon: "⛏️",
+    personality: "挖矿人型",
+    desc: "你相信辛苦干活终有回报。你看好那些别人看不上、但真正有价值的东西。你不跟风不追热点，你在别人看不见的地方默默地积累。总有一天，你会挖到金子。",
+    fortune: ["大吉 · 熬出来了", "吉 · 继续挖", "中吉 · 黎明前的黑暗"],
+    fortuneDetail: ["最佳操作：持有，等风来", "关注点：算力+AI数据中心需求", "提醒：挖矿需要耐心，别在半路下车"],
+    psych: "你属于价值发现型投资者（Value-discovery），擅长在被市场忽略的领域中寻找机会。你具备逆周期思维（Contrarian thinking），这在市场恐慌时是你最大的武器。你的挑战是耐心——真正的价值回归往往比你预期的来得更晚。",
+  },
+  {
+    id: "oklo",
+    ticker: "OKLO",
+    name: "Oklo",
+    icon: "☢️",
+    personality: "未来战士型",
+    desc: "你看的不是现在，你看的是5年后的世界。核能、AI基础设施、下一代科技——你现在买的不是股票，是未来的门票。大多数人看不懂你在做什么，但你知道：等到他们都看懂的时候，已经来不及了。",
+    fortune: ["大吉 · 未来可期", "中吉 · 需要时间", "小吉 · 耐心等待催化剂"],
+    fortuneDetail: ["最佳操作：小仓位慢慢建仓", "关注点：核能监管进展+AI用电需求", "提醒：未来很美好，但先活到那一天"],
+    psych: "你属于前瞻型投资者（Visionary-forward），决策基于趋势研判和技术路线图。你的优势是能看到别人看不到的长期趋势，但容易犯'太早了'的错误——你可能在技术上正确，但在时间上错误。凯恩斯说过：'市场保持非理性的时间，比你保持偿付能力的时间更长。'",
+  },
+  {
+    id: "cost",
+    ticker: "COST",
+    name: "Costco",
+    icon: "🛒",
+    personality: "精算师型",
+    desc: "你每一分钱都花在刀刃上。买股票跟逛Costco一样——不买贵的，只买对的。你精打细算，不追涨不杀跌，每年稳稳地赚10-15%。别人嘲笑你赚得少，但10年后他们发现你才是笑得最开心的那个。",
+    fortune: ["大吉 · 稳稳的幸福", "吉 · 继续定投", "中吉 · 可以加点消费"],
+    fortuneDetail: ["最佳操作：定投不用停", "关注点：会员增长+消费趋势", "提醒：慢就是快，别被短线诱惑"],
+    psych: "你属于价值守护型投资者（Value-preservation），核心驱动力是安全感和复利效应。你的投资哲学接近本杰明·格雷厄姆的'安全边际'理论。你不追求击败市场，你追求的是不被市场击败。长期来看，这是最有效的投资策略之一。",
+  },
+  {
+    id: "jpm",
+    ticker: "JPM",
+    name: "JPMorgan",
+    icon: "🏦",
+    personality: "金融巨鳄型",
+    desc: "你永远在赚钱。牛市你赚钱，熊市你更赚钱。别人亏钱的时候你在收利息，别人赚钱的时候你在收管理费。你不是幸运，你是设计了一个永远不会输的系统。",
+    fortune: ["大吉 · 躺着收钱", "吉 · 利差扩大中", "中吉 · 注意系统性风险"],
+    fortuneDetail: ["最佳操作：持有收息，等降息周期", "关注点：净息差+投行业务", "提醒：银行股赚的是慢钱，别贪快"],
+    psych: "你属于系统性思维者（System-thinker），倾向于构建'无论市场涨跌都能赚钱'的投资框架。你的优势是风险管理和逆向布局能力。你理解金融的本质不是预测未来，而是管理不确定性。这是大多数投资者永远学不会的一课。",
+  },
+];
+
+let currentQuestion = 0;
+let scores = {};
+
+function startQuiz() {
+  currentQuestion = 0;
+  scores = {};
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-question').classList.add('active');
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = questions[currentQuestion];
+  document.getElementById('q-num').textContent = `第 ${currentQuestion + 1} / ${questions.length} 题`;
+  document.getElementById('q-text').textContent = q.q;
+
+  // Progress
+  const progress = document.getElementById('progress');
+  progress.innerHTML = '';
+  for (let i = 0; i < questions.length; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'progress-dot';
+    if (i < currentQuestion) dot.classList.add('filled');
+    if (i === currentQuestion) dot.classList.add('active');
+    progress.appendChild(dot);
+  }
+
+  // Options
+  const opts = document.getElementById('q-options');
+  opts.innerHTML = '';
+  q.options.forEach(opt => {
+    const btn = document.createElement('div');
+    btn.className = 'q-opt';
+    btn.textContent = opt.text;
+    btn.onclick = () => selectOption(opt.scores);
+    opts.appendChild(btn);
+  });
+}
+
+function selectOption(score) {
+  // Accumulate scores
+  for (const [stock, val] of Object.entries(score)) {
+    scores[stock] = (scores[stock] || 0) + val;
+  }
+
+  currentQuestion++;
+  if (currentQuestion < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  // Find best match
+  let maxScore = 0;
+  let maxStock = null;
+  for (const [stock, score] of Object.entries(scores)) {
+    if (score > maxScore) {
+      maxScore = score;
+      maxStock = stock;
+    }
+  }
+
+  const stock = stocks.find(s => s.id === maxStock) || stocks[0];
+  const fortuneIdx = Math.floor(Math.random() * stock.fortune.length);
+
+  document.getElementById('r-icon').textContent = stock.icon;
+  document.getElementById('r-ticker').textContent = `$${stock.ticker}`;
+  document.getElementById('r-name').textContent = stock.name;
+  document.getElementById('r-personality-title').textContent = stock.personality;
+  document.getElementById('r-personality-desc').textContent = stock.desc;
+  document.getElementById('r-fortune').textContent = stock.fortune[fortuneIdx];
+  document.getElementById('r-fortune-detail').textContent = stock.fortuneDetail[fortuneIdx];
+  document.getElementById('r-psych').textContent = stock.psych;
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-result').classList.add('active');
+}
+
+function shareResult() {
+  // On mobile, just tell user to screenshot
+  alert('📸 截图保存这张卡片，分享到朋友圈吧！\n\n朋友扫码也能测 → 看看你们谁的股性最合拍');
+}
+
+function restartQuiz() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-home').classList.add('active');
+}
+</script>
+</body>
+</html>
