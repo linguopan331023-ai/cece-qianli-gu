@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>你是什么潜力股？</title>
+  <!-- html2canvas 用于生成分享图 -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <title>你是什么潜力股？</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
@@ -199,6 +201,21 @@ body {
 .psych-label { color: #00A1E9; font-size: 10px; font-weight: 700; letter-spacing: 2px; margin-bottom: 6px; }
 .psych-text { color: rgba(255,255,255,0.6); font-size: 12px; line-height: 1.7; }
 
+.share-card-area {
+  margin-bottom: 16px;
+  text-align: center;
+}
+.share-card-label {
+  color: #FFD700;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.share-image {
+  width: 100%;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
 .share-cta {
   background: rgba(255,255,255,0.02);
   border: 1px solid rgba(255,255,255,0.06);
@@ -307,6 +324,11 @@ body {
         <div class="psych-text" id="r-psych">你的决策风格偏向直觉驱动型（Intuitive-risking），在做投资决策时更多地依赖模式识别而非数据分析。这种类型的人在上升市场中表现极好，但在下行周期中容易过度自信。</div>
       </div>
 
+      <div class="share-card-area" id="share-card-area" style="display:none;">
+        <div class="share-card-label">📸 长按保存图片 → 分享到朋友圈</div>
+        <img id="share-image" class="share-image" alt="长按保存分享到朋友圈">
+      </div>
+
       <div class="share-cta">
         <div style="color:rgba(255,255,255,0.6);font-size:13px;font-weight:700;">📲 关注公众号，每天看AI分析</div>
         <div class="qr" id="gzh-qr">
@@ -315,12 +337,37 @@ body {
         <div class="hint">每天推送AI投资分析、板块轮动、财报提醒</div>
       </div>
 
-      <button class="share-btn" onclick="shareResult()">📤 截图分享 · 看看朋友是什么股</button>
+      <button class="share-btn" id="share-btn" onclick="generateShareImage()">📸 生成分享图 · 发朋友圈</button>
       <button class="restart-btn" onclick="restartQuiz()">🔄 再测一次</button>
       <div class="footer-note">⚠️ 娱乐测试 · 不构成投资建议 · 关注公众号获取更多AI分析</div>
     </div>
   </div>
 
+</div>
+
+<!-- 分享卡片（隐藏，用于html2canvas截图） -->
+<div id="share-card-content" style="display:none;width:390px;padding:30px 24px;background:linear-gradient(135deg,#0f0c29,#1a1a3e,#24243e);border-radius:20px;font-family:-apple-system,PingFang SC,Helvetica Neue,sans-serif;box-sizing:border-box;">
+  <div style="text-align:center;margin-bottom:20px;">
+    <div style="font-size:12px;color:rgba(255,255,255,0.3);letter-spacing:3px;margin-bottom:4px;">🎯 我的投资人格</div>
+    <div style="font-size:48px;margin-bottom:8px;" id="share-icon">🧠</div>
+    <div style="font-size:36px;font-weight:900;color:#FFD700;" id="share-ticker">688256</div>
+    <div style="font-size:16px;color:rgba(255,255,255,0.4);margin-bottom:4px;" id="share-name">寒武纪</div>
+    <div style="font-size:14px;color:#FF6A00;font-weight:700;" id="share-personality">赛道狂人型</div>
+  </div>
+  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:14px 16px;margin-bottom:16px;">
+    <div style="color:rgba(255,255,255,0.3);font-size:10px;letter-spacing:2px;margin-bottom:2px;">🔮 今日运势</div>
+    <div style="color:white;font-size:16px;font-weight:700;" id="share-fortune">大吉 · 逢低加仓</div>
+    <div style="color:rgba(255,255,255,0.4);font-size:11px;margin-top:2px;" id="share-detail">最佳操作：持仓不动</div>
+  </div>
+  <div style="background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.1);border-radius:14px;padding:14px 16px;margin-bottom:20px;text-align:center;">
+    <div style="color:#FFD700;font-size:12px;font-weight:700;">📱 扫码测测你是什么潜力股</div>
+    <div style="color:rgba(255,255,255,0.2);font-size:10px;margin-top:2px;">4道题找到你的投资人格</div>
+  </div>
+  <div style="text-align:center;">
+    <div style="display:inline-block;background:rgba(255,255,255,0.05);border-radius:20px;padding:6px 18px;">
+      <span style="color:rgba(255,255,255,0.2);font-size:10px;">⚠️ 娱乐测试 · 不构成投资建议</span>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -554,13 +601,39 @@ function showResult() {
   document.getElementById('r-fortune-detail').textContent = stock.fortuneDetail[fortuneIdx];
   document.getElementById('r-psych').textContent = stock.psych;
 
+  // Prepare share card
+  document.getElementById('share-icon').textContent = stock.icon;
+  document.getElementById('share-ticker').textContent = stock.ticker;
+  document.getElementById('share-name').textContent = stock.name;
+  document.getElementById('share-personality').textContent = stock.personality;
+  document.getElementById('share-fortune').textContent = stock.fortune[fortuneIdx];
+  document.getElementById('share-detail').textContent = stock.fortuneDetail[fortuneIdx];
+
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-result').classList.add('active');
 }
 
-function shareResult() {
-  // On mobile, just tell user to screenshot
-  alert('📸 截图保存这张卡片，分享到朋友圈吧！\n\n朋友扫码也能测 → 看看你们谁的股性最合拍');
+function generateShareImage() {
+  const shareCard = document.getElementById('share-card-content');
+  shareCard.style.display = 'block';
+
+  html2canvas(shareCard, {
+    backgroundColor: '#0f0c29',
+    scale: 3,
+    useCORS: true,
+    allowTaint: true,
+    width: 390,
+    height: 520,
+  }).then(canvas => {
+    const img = document.getElementById('share-image');
+    img.src = canvas.toDataURL('image/png');
+    document.getElementById('share-card-area').style.display = 'block';
+    document.getElementById('share-btn').scrollIntoView({ behavior: 'smooth' });
+    shareCard.style.display = 'none';
+  }).catch(err => {
+    alert('生成失败，请手动截图保存 🙏');
+    console.error(err);
+  });
 }
 
 function restartQuiz() {
